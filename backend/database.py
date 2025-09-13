@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_FILE = "osint.db"
+DB_FILE = "../db/osint.db"
 
 def get_db_connection():
     conn = sqlite3.connect(DB_FILE)
