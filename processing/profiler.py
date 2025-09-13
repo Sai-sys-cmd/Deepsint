@@ -127,32 +127,32 @@ def cluster_profiles_from_modalities(pfp: Dict[int, list],
                                      w_pfp: float  = 0.3,
                                      dbscan_eps: float = 0.5,
                                      dbscan_min_samples: int = 1):
-    # 1) index mapping
+    #index mapping
     profile_ids = sorted(set(list(meta.keys()) + list(pfp.keys())))
     id_to_idx = {pid: idx for idx, pid in enumerate(profile_ids)}
     n = len(profile_ids)
 
-    # 2) compute pairwise similarities per-modality (symmetric)
+    #compute pairwise similarities per-modality (symmetric)
     sim_meta = np.zeros((n, n))
-    sim_meta_mask = np.zeros((n, n), dtype=float)  # 1 if available
+    sim_meta_mask = np.zeros((n, n), dtype=float) #1 if available
     sim_pfp = np.zeros((n, n))
     sim_pfp_mask = np.zeros((n, n), dtype=float)
 
     for i, pid_i in enumerate(profile_ids):
         for j in range(i+1, n):
             pid_j = profile_ids[j]
-            # meta
+            #meta
             if pid_i in meta and pid_j in meta:
                 s = cosine_similarity_numpy(meta[pid_i], meta[pid_j])
                 sim_meta[i, j] = sim_meta[j, i] = s
                 sim_meta_mask[i, j] = sim_meta_mask[j, i] = 1.0
-            # pfp
+            #pfp
             if pid_i in pfp and pid_j in pfp:
                 s = cosine_similarity_numpy(pfp[pid_i], pfp[pid_j])
                 sim_pfp[i, j] = sim_pfp[j, i] = s
                 sim_pfp_mask[i, j] = sim_pfp_mask[j, i] = 1.0
 
-    # 3) combine similarities with weights, ignoring missing modalities
+    #Combine similarities with weights, ignoring missing modalities
     combined_sim = np.zeros((n, n))
     for i in range(n):
         for j in range(n):
@@ -163,16 +163,16 @@ def cluster_profiles_from_modalities(pfp: Dict[int, list],
             else:
                 combined_sim[i, j] = num / denom
 
-    # 4) convert similarity -> distance (DBSCAN with precomputed distances)
+    #convert similarity -> distance (DBSCAN with precomputed distances)
     dist = 1.0 - combined_sim
-    # Ensure diagonal is zero
+    #Ensure diagonal is zero
     np.fill_diagonal(dist, 0.0)
 
-    # 5) cluster with DBSCAN on the precomputed distance matrix
+    #cluster with DBSCAN on the precomputed distance matrix
     clustering = DBSCAN(metric="precomputed", eps=dbscan_eps, min_samples=dbscan_min_samples)
     labels = clustering.fit_predict(dist)
 
-    # return mapping profile_id -> label and grouped clusters
+    #return mapping profile_id -> label and grouped clusters
     pid_to_label = {pid: int(labels[idx]) for pid, idx in id_to_idx.items()}
     clusters = defaultdict(list)
     for pid, lbl in pid_to_label.items():
@@ -180,12 +180,12 @@ def cluster_profiles_from_modalities(pfp: Dict[int, list],
 
     return pid_to_label, dict(clusters), combined_sim, dist
 
-# Example usage:
 pid_to_label, clusters, combined_sim, dist = cluster_profiles_from_modalities(pfp, meta)
 print("clusters (label -> profile ids):")
 for lbl, ids in clusters.items():
     print(lbl, ids)
 
+# print(clusters)
 
 # print(cluster_profiles(pfp,meta))
 # print(cosine_similarity_numpy(meta[1],meta[2]))
