@@ -106,11 +106,20 @@ def calculate_cohere_embeddings(file_path: str):
     return pfp_embeds, metadata_embeds
 
 
- 
+import numpy as np
+from numpy.linalg import norm
+
+def cosine_similarity_numpy(vec1, vec2):
+    vec1_np = np.array(vec1)
+    vec2_np = np.array(vec2)
+    return np.dot(vec1_np, vec2_np) / (norm(vec1_np) * norm(vec2_np))
+
 
 pfp, meta = calculate_cohere_embeddings("generic_scrape_results.json")
 # print(cluster_profiles(pfp,meta))
-
+print(cosine_similarity_numpy(meta[1],meta[2]))
+print(pfp.keys())
+print(meta.keys())
 
 # response = co.embed(
 #   model='embed-v4.0',
