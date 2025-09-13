@@ -24,7 +24,7 @@ def summarize_cluster_full(links, file_path, username):
             
             chunked_documents.append({"data": {"text": text}})
 
-    load_dotenv(dotenv_path=r"C:\Users\Tristan\Downloads\HTN2025\HTN-2025\processing\.env")
+    load_dotenv()
     api_key = os.getenv("COHERE_API_KEY")
     co = cohere.ClientV2(api_key=api_key)
     
@@ -42,5 +42,5 @@ def summarize_cluster_full(links, file_path, username):
 
 
 
-print(summarize_cluster_full([0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 12],r"C:\Users\Tristan\Downloads\HTN2025\generic_scrape_results.json","LordFurno" ))
+# print(summarize_cluster_full([0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 12],r"C:\Users\Tristan\Downloads\HTN2025\generic_scrape_results.json","LordFurno" ))
 
