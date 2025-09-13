@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 # from scraper import 
 import cohere
 import requests
-
 def image_to_base64_data_url(image_path: str):
     _, file_extension = os.path.splitext(image_path)
     file_type = file_extension[1:] #Remove the .
@@ -26,7 +25,9 @@ def download_image(image_url: str, save_path: str):
             
 
 def calculate_cohere_embeddings(file_path: str):
+    load_dotenv(dotenv_path=r"C:\Users\Tristan\Downloads\HTN2025\HTN-2025\processing\.env")
     api_key = os.getenv("COHERE_API_KEY")
+
     co = cohere.ClientV2(api_key = api_key)
     pfp_embeds = {}
     metadata_embeds = {}
@@ -50,23 +51,55 @@ def calculate_cohere_embeddings(file_path: str):
                     }
                     image_embed = co.embed(
                         model="embed-v4.0",
+                        output_dimension=1024,
                         inputs=[image_input],
                         input_type="search_document",
                         embedding_types=["float"],
                     )
                     pfp_embeds[i] = image_embed
                 
-                for metadata in ["page_title","bio", "page_text", "links"]:
-                    pass
+                metadata = ""
+                for dataType in ["page_title","bio", "page_text", "links"]:
+                    if dataType == "links":
+                        for link in data[i][dataType]:
+                            metadata += link  
+                    elif data[i][dataType]:
+                        #Not null
+                        metadata += data[i][dataType]
+                        
+                embed_input = [
+                    {
+                        "content": [
+                            {"type": "text", "text": metadata},
+                        ]
+                    },
+                ]
+                
+                doc_emb = co.embed(
+                    inputs=embed_input,
+                    model="embed-v4.0",
+                    output_dimension=1024,
+                    input_type="search_document",
+                    embedding_types=["float"],
+                )
+                metadata_embeds[i] = doc_emb
+
+                        
+                        
+                    
                 
             
                 # break
         # print(pfp_embeds.keys())
         
-        for key in pfp_embeds.keys():
-            print(pfp_embeds[key])
+        # for key in pfp_embeds.keys():
+        #     print(pfp_embeds[key])
+        # for key in metadata_embeds.keys():
+        #     print(metadata_embeds[key])
         # for i in range(len(pfp_embeds)):
             # print(pfp_embeds[i])
+    return pfp_embeds, metadata_embeds
+
 calculate_cohere_embeddings("generic_scrape_results.json")
     
 
