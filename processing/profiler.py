@@ -3,7 +3,7 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 import os, hashlib, json, time, asyncio
 
 import cohere
-co = cohere.Client('wIS7zJGenliZH7ds8jlFoilLIFpFNvwd5t5EDeIR') # This is your trial API key
+co = cohere.Client('API_KEY') # This is your trial API key
 
 # response = co.embed(
 #   model='embed-v4.0',
