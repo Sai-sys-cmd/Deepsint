@@ -2,3 +2,6 @@ backend/venv/
 frontend/node_modules/
 .env
 processing/.env
+.ropeproject
+.idea/
+.vscode/
