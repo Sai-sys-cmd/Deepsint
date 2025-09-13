@@ -28,7 +28,7 @@ def summarize_cluster_full(links, file_path, username):
     api_key = os.getenv("COHERE_API_KEY")
     co = cohere.ClientV2(api_key=api_key)
     
-    message = f"Summarize the key facts about the user from the provided data, focusing on activities, interests, affiliations, or any relevant personal information. Avoid details like website names unless absolutely necessary."
+    message = f"Summarize the key details about the user based on the provided data, highlighting their activities, interests, potential age (based on account creation), affiliations, or any other relevant FACTUAL personal information. Keep it concise—2-3 sentences, and avoid including website names unless essential."
 
     response = co.chat(
         model="command-a-03-2025",
