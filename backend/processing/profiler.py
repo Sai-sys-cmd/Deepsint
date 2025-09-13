@@ -6,6 +6,12 @@ from dotenv import load_dotenv
 import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from sklearn.cluster import DBSCAN
+from collections import defaultdict
+import numpy as np
+from numpy.linalg import norm
+
 # from scraper import 
 import cohere
 import requests
@@ -32,7 +38,7 @@ def download_image(image_url: str, save_path: str):
             
 
 def calculate_cohere_embeddings(file_path: str):
-    load_dotenv(dotenv_path=r"C:\Users\Tristan\Downloads\HTN2025\HTN-2025\processing\.env")
+    load_dotenv()
     api_key = os.getenv("COHERE_API_KEY")
 
     co = cohere.ClientV2(api_key = api_key)
@@ -92,8 +98,6 @@ def calculate_cohere_embeddings(file_path: str):
                     embedding_types=["float"],
                 )
                 metadata_embeds[i] = doc_emb.embeddings.float[0]
-
-                # break
         # print(pfp_embeds.keys())
         
         # for key in pfp_embeds.keys():            
@@ -106,8 +110,7 @@ def calculate_cohere_embeddings(file_path: str):
     return pfp_embeds, metadata_embeds
 
 
-import numpy as np
-from numpy.linalg import norm
+
 
 def cosine_similarity_numpy(vec1, vec2):
     vec1_np = np.array(vec1)
@@ -115,11 +118,8 @@ def cosine_similarity_numpy(vec1, vec2):
     return np.dot(vec1_np, vec2_np) / (norm(vec1_np) * norm(vec2_np))
 
 
-pfp, meta = calculate_cohere_embeddings("generic_scrape_results.json")
+# pfp, meta = calculate_cohere_embeddings("generic_scrape_results.json")
 # print("?")
-import numpy as np
-from sklearn.cluster import DBSCAN
-from collections import defaultdict
 
 def cluster_profiles_from_modalities(pfp: Dict[int, list],
                                      meta: Dict[int, list],
@@ -180,56 +180,12 @@ def cluster_profiles_from_modalities(pfp: Dict[int, list],
 
     return pid_to_label, dict(clusters), combined_sim, dist
 
-pid_to_label, clusters, combined_sim, dist = cluster_profiles_from_modalities(pfp, meta)
-print("clusters (label -> profile ids):")
-for lbl, ids in clusters.items():
-    print(lbl, ids)
-
+# pid_to_label, clusters, combined_sim, dist = cluster_profiles_from_modalities(pfp, meta)
+# print("clusters (label -> profile ids):")
 # print(clusters)
+# print(dist)
+# print(pid_to_label)
+# for lbl, ids in clusters.items():
+#     print(lbl, ids)
 
-# print(cluster_profiles(pfp,meta))
-# print(cosine_similarity_numpy(meta[1],meta[2]))
-print(pfp.keys())
-print(meta.keys())
 
-# response = co.embed(
-#   model='embed-v4.0',
-#   texts=[""],
-#   input_type='classification',
-#   truncate='NONE'
-# )
-# print('Embeddings: {}'.format(response.embeddings))
-
-# try:
-#     from sentence_transformers import SentenceTransformer
-#     st_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-# except Exception:
-#     st_model = None
-
-# @dataclass
-# class Profile:
-#     platform: str
-#     url : str
-#     handle : Optional[str] = None
-#     display_name: Optional[str] = None
-#     bio: Optional[str] = None
-#     location: Optional[str] = None
-#     links: List[str] = None
-#     avatar_url: Optional[str] = None
-#     page_title: Optional[str] = None
-#     page_text: Optional[str] = None
-#     domain: Optional[str] = None
-    
-# def embed_text(text):
-#     if st_model is None:
-#         #Simple text embedding with has for now
-#         h = hashlib.sha256(text.encode()).digest()
-#         return [b / 255.0 for b in h[:64]] + [0.0] * (384 - 64)
-#     return st_model.encode([text],normalize_embeddings=True)[0].tolist()
-
-# val1 =embed_text("This is a test!")
-# val2 = embed_text("This")
-# print("\n")
-# print(len(val1))
-# print(len(val2)) 
-# print(embed_text("This is a test!"))
