@@ -3,6 +3,9 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 import os, hashlib, json, time, asyncio
 import base64
 from dotenv import load_dotenv
+import numpy as np
+from sklearn.cluster import DBSCAN
+from sklearn.metrics.pairwise import cosine_similarity
 # from scraper import 
 import cohere
 import requests
@@ -17,10 +20,14 @@ def image_to_base64_data_url(image_path: str):
 
 def download_image(image_url: str, save_path: str):
     response = requests.get(image_url, stream=True)
-    response.raise_for_status()
+    try:    
+        response.raise_for_status()
+    except:
+        return False
     with open(save_path, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
+    return True
         
             
 
@@ -41,7 +48,9 @@ def calculate_cohere_embeddings(file_path: str):
                     
                     #Not null
                     # temp_image_path = r"HTN-2025\TMP\image" + pfp_image_url
-                    download_image(pfp_image_url, r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
+                    test = download_image(pfp_image_url, r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
+                    if not test:
+                        continue
                     base64_url = image_to_base64_data_url(r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
                     image_input = {
                         "content": [
@@ -56,10 +65,10 @@ def calculate_cohere_embeddings(file_path: str):
                         input_type="search_document",
                         embedding_types=["float"],
                     )
-                    pfp_embeds[i] = image_embed
+                    pfp_embeds[i] = image_embed.embeddings.float[0]
                 
                 metadata = ""
-                for dataType in ["page_title","bio", "page_text", "links"]:
+                for dataType in ["page_title","bio", "page_text"]:
                     if dataType == "links":
                         for link in data[i][dataType]:
                             metadata += link  
@@ -82,26 +91,25 @@ def calculate_cohere_embeddings(file_path: str):
                     input_type="search_document",
                     embedding_types=["float"],
                 )
-                metadata_embeds[i] = doc_emb
+                metadata_embeds[i] = doc_emb.embeddings.float[0]
 
-                        
-                        
-                    
-                
-            
                 # break
         # print(pfp_embeds.keys())
         
-        # for key in pfp_embeds.keys():
-        #     print(pfp_embeds[key])
+        # for key in pfp_embeds.keys():            
+            # print(pfp_embeds[key])
+
         # for key in metadata_embeds.keys():
-        #     print(metadata_embeds[key])
-        # for i in range(len(pfp_embeds)):
-            # print(pfp_embeds[i])
+            # print(len(metadata_embeds[key]))
+            # break
+ 
     return pfp_embeds, metadata_embeds
 
-calculate_cohere_embeddings("generic_scrape_results.json")
-    
+
+ 
+
+pfp, meta = calculate_cohere_embeddings("generic_scrape_results.json")
+# print(cluster_profiles(pfp,meta))
 
 
 # response = co.embed(

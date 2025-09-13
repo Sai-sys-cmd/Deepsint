@@ -461,13 +461,27 @@ async def test_scraper():
     
     #Test URLs 
     test_urls = [
-        'https://github.com/torvalds',
-        'https://www.linkedin.com/in/tristan-butcher-1881a5325/', #Auth block
-        'https://twitter.com/elonmusk', #Requires JS
-        'https://instagram.com/cristiano', #Requires JS
-        'https://medium.com/@tim_cook',
-        'https://dev.to/ben',
-        #Add more test URLs here
+        'https://codeforces.com/api/user.info?handles=lordfurno',
+        'https://huggingface.co/lordfurno',
+        'https://www.wattpad.com/api/v3/users/lordfurno',
+        'https://api.imgur.com/account/v1/accounts/lordfurno?client_id=546c25a59c58ad7',
+        'https://itch.io/profile/lordfurno',
+        'https://hub.docker.com/v2/users/lordfurno/',
+        'https://hub.docker.com/v2/orgs/lordfurno/',
+        'https://www.kaggle.com/lordfurno',
+        'https://www.xboxgamertag.com/search/lordfurno',
+        'https://www.last.fm/user/lordfurno',
+        'https://api.monkeytype.com/users/lordfurno/profile',
+        'https://lichess.org/api/player/autocomplete?term=lordfurno&exists=1',
+        'https://api.github.com/users/lordfurno',
+        'https://ok.ru/lordfurno'
+        # 'https://github.com/torvalds',
+        # 'https://www.linkedin.com/in/tristan-butcher-1881a5325/', #Auth block
+        # 'https://twitter.com/elonmusk', #Requires JS
+        # 'https://instagram.com/cristiano', #Requires JS
+        # 'https://medium.com/@tim_cook',
+        # 'https://dev.to/ben',
+        # #Add more test URLs here
     ]
     
     results = await scraper.batch_scrape(test_urls, delay=2.0)
@@ -511,8 +525,8 @@ def clean_json(url: str):
         f.truncate()
 
 async def main():
-    # await test_scraper()
-    clean_json(r"C:\Users\Tristan\Downloads\HTN2025\generic_scrape_results.json")
+    await test_scraper()
+    # clean_json(r"C:\Users\Tristan\Downloads\HTN2025\generic_scrape_results.json")
 
 if __name__ == '__main__':
     asyncio.run(main())
