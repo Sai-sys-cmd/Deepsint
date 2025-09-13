@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Tuple, Set
 import os, hashlib, json, time, asyncio
 import base64
+from dotenv import load_dotenv
 # from scraper import 
 import cohere
 import requests
@@ -25,32 +26,47 @@ def download_image(image_url: str, save_path: str):
             
 
 def calculate_cohere_embeddings(file_path: str):
-    co = cohere.ClientV2(api_key = 'API_KEY')
+    api_key = os.getenv("COHERE_API_KEY")
+    co = cohere.ClientV2(api_key = api_key)
     pfp_embeds = {}
+    metadata_embeds = {}
     
     with open(file_path, 'r', encoding="utf-8") as f:
         data = json.load(f)
         for i in range(len(data)):
-            pfp_image_url = data[i]["avatar_url"]
-            if pfp_image_url:
-                #Not null
-                # temp_image_path = r"HTN-2025\TMP\image" + pfp_image_url
-                download_image(pfp_image_url, r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
-                base64_url = image_to_base64_data_url(r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
-                image_input = {
-                    "content": [
-                        {"type": "image_url", "image_url": {"url": base64_url}}
-                    ]
+            if data[i]["scrape_status"] == "ok": #Has to be okay, not auth blocked
+                pfp_image_url = data[i]["avatar_url"]
+                if pfp_image_url:
                     
-                }
-                image_embed = co.embed(
-                    model="embed-v4.0",
-                    inputs=[image_input],
-                    input_type="search_document",
-                    embedding_types=["float"],
-                )
-                pfp_embeds[i] = image_embed
+                    #Not null
+                    # temp_image_path = r"HTN-2025\TMP\image" + pfp_image_url
+                    download_image(pfp_image_url, r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
+                    base64_url = image_to_base64_data_url(r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
+                    image_input = {
+                        "content": [
+                            {"type": "image_url", "image_url": {"url": base64_url}}
+                        ]
+                        
+                    }
+                    image_embed = co.embed(
+                        model="embed-v4.0",
+                        inputs=[image_input],
+                        input_type="search_document",
+                        embedding_types=["float"],
+                    )
+                    pfp_embeds[i] = image_embed
+                
+                for metadata in ["page_title","bio", "page_text", "links"]:
+                    pass
+                
+            
                 # break
+        # print(pfp_embeds.keys())
+        
+        for key in pfp_embeds.keys():
+            print(pfp_embeds[key])
+        # for i in range(len(pfp_embeds)):
+            # print(pfp_embeds[i])
 calculate_cohere_embeddings("generic_scrape_results.json")
     
 
