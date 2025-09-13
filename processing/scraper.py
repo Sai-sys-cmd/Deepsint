@@ -2,13 +2,11 @@
 import asyncio
 import json
 import re
-import time
 from dataclasses import dataclass, asdict, field
 from typing import Dict, List, Optional, Any
 from urllib.parse import urljoin, urlparse
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 import requests
-from bs4 import BeautifulSoup
 
 
 @dataclass
@@ -488,12 +486,34 @@ async def test_scraper():
         #Export results
         scraper.export_results(results, 'generic_scrape_results.json')
         
+def clean_json(url: str):
+    """Clean up json"""
+    with open(url, 'r+', encoding='utf-8') as f:
+        data = json.load(f)
+        for i in range(len(data)):
+            #First need to remove back slash characters in page text
+            #Then need to remove useless social links. I think we can just ignore social links
+            page_text = data[i]["page_text"]
+            #Remove all escape sequences \n and \t (newlines and tabs)
+            page_text = re.sub(r'\\n|\\t', '', page_text)  # This will remove the escape sequences
+            #Also remove actual newlines and tabs (not just escape sequences)
+            page_text = page_text.replace('\n', ' ').replace('\t', ' ')
+            data[i]["page_text"] = page_text
 
 
+
+        f.seek(0)
+        
+        # Write the cleaned data back to the file
+        json.dump(data, f, ensure_ascii=False, indent=4)
+        
+        # Truncate any remaining old content from the file if the new data is smaller
+        f.truncate()
 
 async def main():
-    await test_scraper()
-
+    # await test_scraper()
+    clean_json(r"C:\Users\Tristan\Downloads\HTN2025\generic_scrape_results.json")
 
 if __name__ == '__main__':
     asyncio.run(main())
+    # main()
