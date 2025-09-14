@@ -1,18 +1,36 @@
 import streamlit as st
 
-st.set_page_config(page_title="OSINT Visualizer", layout="wide")
-st.title("🔍 OSINT Visualizer")
+# Configure page
+st.set_page_config(
+    page_title="Deepsint", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# --- Username Input Form ---
-with st.form(key="username_form"):
-    username = st.text_input("Enter a username or email:", placeholder="e.g., alice123")
-    submitted = st.form_submit_button("Search")
+# Import page modules
+from pages.search import show_search_page
+from pages.results import show_results_page
 
-# --- Process Form Submission ---
-if submitted:
-    if username.strip() == "":
-        st.error("Please enter a valid username or email.")
-    else:
-        st.success(f"Searching for username: {username}")
-        # Placeholder for your OSINT logic
-        st.write("Here you can trigger Blackbird, Cohere, or other analysis.")
+# Sidebar navigation
+st.sidebar.title("🔍 Deepsint")
+st.sidebar.markdown("---")
+
+# Navigation menu
+page = st.sidebar.selectbox(
+    "Navigate to:",
+    ["🔍 Search", "📊 Results"],
+    index=0
+)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### About")
+st.sidebar.info(
+    "Deepsint is an OSINT tool that uses Blackbird to find social media profiles "
+    "and processes them through advanced profiling and clustering algorithms."
+)
+
+# Main content area
+if page == "🔍 Search":
+    show_search_page()
+elif page == "📊 Results":
+    show_results_page()

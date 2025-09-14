@@ -5,3 +5,7 @@ processing/.env
 .ropeproject
 .idea/
 .vscode/
+blackbird/
+venv/
+processing/__* 
+*/__*

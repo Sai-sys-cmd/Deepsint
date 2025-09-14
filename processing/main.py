@@ -1,13 +1,14 @@
-from scraper import UniversalScraper, clean_json
-from profiler import *
+from .scraper import UniversalScraper, clean_json
+from .profiler import calculate_cohere_embeddings, cluster_profiles_from_modalities
+import json
 import asyncio
 import os
 import aiosqlite
 import datetime
-from summary import summarize_cluster_full
+from .summary import summarize_cluster_full
 
 #Use osint.db for testing
-DB_PATH = r"HTN-2025\db\osint.db"
+DB_PATH = r"data/osint.db"
 
 def get_versioned_filename(base_path):
     version = 1
@@ -85,7 +86,7 @@ async def insert_profiles_from_json_async(username, file_path, data, clusters=No
             raw_json = json.dumps(profile_obj, ensure_ascii=False)
             cluster_id = index_to_cluster.get(idx)
             await db.execute(insert_sql, (username, file_path, idx, platform, url, raw_json, cluster_id, created_at))
-        await db.commit()        
+        await db.commit()
 
 
 #Output stuff as a dictionary
@@ -94,22 +95,22 @@ async def findProfiles(profileLinks, user):
     This will go through the entire scraping, profiling and summarization process
     profileLinks are the profiles from blackbird, and user will be username/name/email being searched
     user is needed for the file names.
-    """    
-    
+    """
+
     await init_db()
 
 
     #First is scraping
     scraper = UniversalScraper(use_playwright=True, headless=True)
-    
+
     results = await scraper.batch_scrape(profileLinks, 3)
-    
+
     if not results:
         return {}
 
     #Create file path
     file_path = get_versioned_filename(f"{user}")
-    
+
     scraper.export_results(results, file_path)
     clean_json(file_path)
     #HAVE DATABASE MOVE HERE
@@ -132,13 +133,13 @@ async def findProfiles(profileLinks, user):
         #Open json scraper file in the database
         #Let's call this data for now
         #Do the json.load() process
-        
+
         for val in clusters[key]:
             profile_info[key][0].append(data[val]["platform"])
         #Add summary here
-        
+
         profile_info[key].append(summarize_cluster_full(clusters[key],file_path, user))
-            
+
     return profile_info
 
 async def main():
