@@ -1,12 +1,18 @@
-from typing import Dict
-import os, json
+from dataclasses import dataclass
+from typing import List, Dict, Any, Optional, Tuple, Set
+import os, hashlib, json, time, asyncio
 import base64
 from dotenv import load_dotenv
 import numpy as np
 from sklearn.cluster import DBSCAN
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from sklearn.cluster import DBSCAN
 from collections import defaultdict
+import numpy as np
 from numpy.linalg import norm
 
+# from scraper import 
 import cohere
 import requests
 def image_to_base64_data_url(image_path: str):
@@ -20,7 +26,7 @@ def image_to_base64_data_url(image_path: str):
 
 def download_image(image_url: str, save_path: str):
     response = requests.get(image_url, stream=True)
-    try:
+    try:    
         response.raise_for_status()
     except:
         return False
@@ -28,8 +34,8 @@ def download_image(image_url: str, save_path: str):
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
     return True
-
-
+        
+            
 
 def calculate_cohere_embeddings(file_path: str):
     load_dotenv()
@@ -38,59 +44,69 @@ def calculate_cohere_embeddings(file_path: str):
     co = cohere.ClientV2(api_key = api_key)
     pfp_embeds = {}
     metadata_embeds = {}
-
+    
     with open(file_path, 'r', encoding="utf-8") as f:
         data = json.load(f)
         for i in range(len(data)):
             if data[i]["scrape_status"] == "ok": #Has to be okay, not auth blocked
-                # pfp_image_url = data[i]["avatar_url"]
-                # if pfp_image_url:
-
+                pfp_image_url = data[i]["avatar_url"]
+                if pfp_image_url:
+                    
                     #Not null
                     # temp_image_path = r"HTN-2025\TMP\image" + pfp_image_url
-                    # test = download_image(pfp_image_url, r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
-                    # if not test:
-                    #     continue
-                    # base64_url = image_to_base64_data_url(r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
-                    # image_input = {
-                    #     "content": [
-                    #         {"type": "image_url", "image_url": {"url": base64_url}}
-                    #     ]
-
-                    # }
-                    # image_embed = co.embed(
-                    #     model="embed-v4.0",
-                    #     output_dimension=1024,
-                    #     inputs=[image_input],
-                    #     input_type="search_document",
-                    #     embedding_types=["float"],
-                    # )
-                    # pfp_embeds[i] = image_embed.embeddings.float[0]
-
+                    test = download_image(pfp_image_url, r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
+                    if not test:
+                        continue
+                    base64_url = image_to_base64_data_url(r"C:\Users\Tristan\Downloads\HTN2025\TMP\image.png")
+                    image_input = {
+                        "content": [
+                            {"type": "image_url", "image_url": {"url": base64_url}}
+                        ]
+                        
+                    }
+                    image_embed = co.embed(
+                        model="embed-v4.0",
+                        output_dimension=1024,
+                        inputs=[image_input],
+                        input_type="search_document",
+                        embedding_types=["float"],
+                    )
+                    pfp_embeds[i] = image_embed.embeddings.float[0]
+                
                 metadata = ""
                 for dataType in ["page_title","bio", "page_text"]:
                     if dataType == "links":
                         for link in data[i][dataType]:
-                            metadata += link
+                            metadata += link  
                     elif data[i][dataType]:
                         #Not null
                         metadata += data[i][dataType]
-
+                        
+                embed_input = [
+                    {
+                        "content": [
+                            {"type": "text", "text": metadata},
+                        ]
+                    },
+                ]
+                
                 doc_emb =  co.embed(
-                    texts=[metadata],
-                    model="embed-english-v3.0",
-                    input_type="search_document"
+                    inputs=embed_input,
+                    model="embed-v4.0",
+                    output_dimension=1024,
+                    input_type="search_document",
+                    embedding_types=["float"],
                 )
-                metadata_embeds[i] = doc_emb.embeddings[0]
+                metadata_embeds[i] = doc_emb.embeddings.float[0]
         # print(pfp_embeds.keys())
-
-        # for key in pfp_embeds.keys():
+        
+        # for key in pfp_embeds.keys():            
             # print(pfp_embeds[key])
 
         # for key in metadata_embeds.keys():
             # print(len(metadata_embeds[key]))
             # break
-
+ 
     return pfp_embeds, metadata_embeds
 
 
@@ -151,6 +167,7 @@ def cluster_profiles_from_modalities(pfp: Dict[int, list],
     dist = 1.0 - combined_sim
     #Ensure diagonal is zero
     np.fill_diagonal(dist, 0.0)
+
     #cluster with DBSCAN on the precomputed distance matrix
     clustering = DBSCAN(metric="precomputed", eps=dbscan_eps, min_samples=dbscan_min_samples)
     labels = clustering.fit_predict(dist)
@@ -163,7 +180,6 @@ def cluster_profiles_from_modalities(pfp: Dict[int, list],
 
     return pid_to_label, dict(clusters), combined_sim, dist
 
-# pfp, meta = calculate_cohere_embeddings("LordFurno_v1.json")
 # pid_to_label, clusters, combined_sim, dist = cluster_profiles_from_modalities(pfp, meta)
 # print("clusters (label -> profile ids):")
 # print(clusters)
@@ -171,3 +187,5 @@ def cluster_profiles_from_modalities(pfp: Dict[int, list],
 # print(pid_to_label)
 # for lbl, ids in clusters.items():
 #     print(lbl, ids)
+
+
